@@ -570,6 +570,14 @@
   box-shadow: 0 0 0 2px rgba(204, 34, 34, 0.3);
 }
 
+.node--invalid {
+  border-color: rgba(251, 146, 60, 0.6);
+}
+
+.node--invalid.node--selected {
+  box-shadow: 0 0 0 2px rgba(251, 146, 60, 0.25);
+}
+
 /* Ports */
 .port {
   width: 12px;
@@ -638,6 +646,22 @@
   font-size: 0.82rem;
   font-weight: 600;
   color: var(--text);
+}
+
+.node-warn {
+  font-size: 0.65rem;
+  font-weight: 800;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: rgba(251, 146, 60, 0.2);
+  border: 1px solid rgba(251, 146, 60, 0.5);
+  color: #fb923c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  line-height: 1;
 }
 
 .node-delete {

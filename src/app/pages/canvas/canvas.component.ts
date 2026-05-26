@@ -62,6 +62,20 @@ export class CanvasComponent implements OnInit {
     this.nodes().find((n) => n.id === this.selectedNodeId()) ?? null,
   );
 
+  invalidNodeIds = computed(() => {
+    const ids = new Set<string>();
+    for (const node of this.nodes()) {
+      if (node.type === 'sms') {
+        const msg = (node.config as { message: string }).message;
+        if (!msg?.trim()) ids.add(node.id);
+      } else if (node.type === 'segment') {
+        const conditions = (node.config as FilterGroup).conditions ?? [];
+        if (conditions.length === 0) ids.add(node.id);
+      }
+    }
+    return ids;
+  });
+
   connectingFrom: string | null = null;
   private drag: DragState | null = null;
 
@@ -342,7 +356,31 @@ export class CanvasComponent implements OnInit {
   // ─── Save ──────────────────────────────────────────────────────────────────
 
   save(): void {
+    if (!this.validate()) return;
     this.doSave();
+  }
+
+  private validate(): boolean {
+    const issues: string[] = [];
+    for (const node of this.nodes()) {
+      if (node.type === 'sms') {
+        const msg = (node.config as { message: string }).message;
+        if (!msg?.trim()) issues.push('hay un nodo SMS sin mensaje');
+      } else if (node.type === 'segment') {
+        const conditions = (node.config as FilterGroup).conditions ?? [];
+        if (conditions.length === 0) issues.push('hay un nodo Segmento sin condiciones');
+      }
+    }
+    if (issues.length > 0) {
+      this.toast.show(
+        issues.length === 1
+          ? `No se puede guardar: ${issues[0]}`
+          : `No se puede guardar: ${issues.join(' y ')}`,
+        'error',
+      );
+      return false;
+    }
+    return true;
   }
 
   private doSave(onDone?: () => void): void {

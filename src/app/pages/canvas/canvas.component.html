@@ -193,6 +193,7 @@
               [class.node--segment]="node.type === 'segment'"
               [class.node--sms]="node.type === 'sms'"
               [class.node--connecting-source]="node.id === connectingFrom"
+              [class.node--invalid]="invalidNodeIds().has(node.id)"
               [style.left.px]="node.x"
               [style.top.px]="node.y"
               [style.width.px]="NODE_W"
@@ -207,6 +208,9 @@
                 <div class="node-header">
                   <span class="node-icon">{{ node.type === 'segment' ? '⊙' : '✉' }}</span>
                   <span class="node-type">{{ node.type === 'segment' ? 'Segmento' : 'SMS' }}</span>
+                  @if (invalidNodeIds().has(node.id)) {
+                    <span class="node-warn" title="Este nodo está incompleto">!</span>
+                  }
                   <button class="node-delete" (click)="deleteNode(node.id, $event)">✕</button>
                 </div>
                 <div class="node-summary">{{ nodeSummary(node) }}</div>
