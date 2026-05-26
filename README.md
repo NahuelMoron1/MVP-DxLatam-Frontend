@@ -2,6 +2,8 @@
 
 Angular 19 SPA para el MVP de la plataforma de automatización de campañas. Consume la API REST del backend y expone tres vistas: listado de campañas, canvas visual de flujos, y maestro de contactos.
 
+**Producción:** https://www.mvpcampaign.online · **API:** https://api.mvpcampaign.online
+
 ## Stack
 
 | Capa | Tecnología |
@@ -59,9 +61,9 @@ Para producción, editar `environment.prod.ts` con la URL del servidor desplegad
 ```
 src/app/
 ├── pages/
-│   ├── campaigns/          — Listado, crear, editar campañas
+│   ├── campaigns/          — Listado, crear, editar, importar/exportar campañas
 │   ├── canvas/             — Editor visual de flujos (nodos + aristas)
-│   └── contacts/           — Listado, crear, editar contactos
+│   └── contacts/           — Listado, crear, editar, exportar contactos
 ├── shared/
 │   ├── components/
 │   │   ├── layout/         — Shell de la app (sidebar + router-outlet)
@@ -124,6 +126,8 @@ En lugar de un historial de acciones, se guarda un snapshot JSON del estado en e
 - Crear campaña (modal) → redirige al canvas al crear
 - Editar nombre, descripción y estado (draft/active)
 - Eliminar con confirmación
+- **Exportar campaña** a JSON (Bonus B4): descarga un archivo con nombre, descripción, nodos y aristas
+- **Importar campaña** desde JSON (Bonus B4): crea la campaña y carga el canvas en una sola operación
 
 ### Canvas (`/campaigns/:id`)
 - Drag & drop de nodos sobre un canvas de 2400×1400px
@@ -144,6 +148,8 @@ En lugar de un historial de acciones, se guarda un snapshot JSON del estado en e
 - Textarea con contador de caracteres dinámico (GSM-7: 160 / Unicode: 70)
 - Indicador de encoding (GSM / Unicode) en tiempo real
 - Contador de segmentos SMS cuando supera el límite de un mensaje
+- **Inserción de variables** (Bonus B2): botones `{{name}}`, `{{country}}`, `{{city}}` insertan la variable en la posición del cursor
+- **Preview de SMS** (Bonus B2): resuelve las variables contra los primeros 3 contactos del segmento conectado, mostrando cómo quedaría el mensaje real para cada uno
 
 **Validaciones (Bonus B1 + B3):**
 - Badge naranja `!` en nodos incompletos (Segmento sin condiciones, SMS sin mensaje)
@@ -156,6 +162,7 @@ En lugar de un historial de acciones, se guarda un snapshot JSON del estado en e
 - Chips de filtros activos con botón ✕ para limpiar individualmente
 - Crear y editar contactos (modales con todos los campos)
 - Eliminación con confirmación
+- **Exportar a CSV**: descarga todos los contactos aplicando los filtros activos (nombre, apellido, email, teléfono, país, ciudad, estado, fecha)
 
 ---
 
@@ -171,7 +178,23 @@ En lugar de un historial de acciones, se guarda un snapshot JSON del estado en e
 
 **Bonus implementados:**
 - B1 · SMS requiere Segmento previo conectado ✅
+- B2 · Variables dinámicas `{{name}}`, `{{country}}`, `{{city}}` resueltas y sanitizadas ✅
 - B3 · Validaciones UX: SMS vacío, segmento sin filtros, nodos desconectados ✅
+- B4 · Import / Export JSON de campañas ✅
+
+---
+
+## Deploy en producción
+
+La aplicación está desplegada en **https://www.mvpcampaign.online** con deploy automático ante cada push a `main`.
+
+El backend expone un endpoint webhook (`POST /fewebhook/github-webhook`) configurado en GitHub Actions. Cuando se detecta un push, el servidor ejecuta en el host de frontend:
+
+```
+git pull origin main → ng build → sirve los artefactos de dist/
+```
+
+Esto permite que los evaluadores accedan a la versión más reciente sin necesidad de instalar nada localmente.
 
 ---
 
@@ -179,12 +202,10 @@ En lugar de un historial de acciones, se guarda un snapshot JSON del estado en e
 
 | Feature | Motivo |
 |---|---|
-| Variables `{{name}}`, `{{country}}`, `{{city}}` en SMS | Bonus B2, no requerido en el núcleo |
-| Import / Export JSON de campañas | Bonus B4, no requerido en el núcleo |
-| Tests e2e / docker-compose | Bonus B5, fuera del alcance temporal |
 | Grupos anidados en UI del Segmento | El backend soporta `FilterGroup` anidado; la UI expone condiciones planas porque el wireframe no muestra cómo construir grupos anidados y el caso de uso principal está cubierto |
+| Tests e2e / docker-compose | Bonus B5, fuera del alcance temporal |
 | Autenticación | Fuera de alcance según especificación |
-| Envío real de SMS | Fuera de alcance — la configuración queda persistida y lista para conectar un proveedor |
+| Envío real de SMS | Fuera de alcance — la configuración queda persistida y lista para conectar un proveedor (Twilio, etc.) |
 
 ---
 
@@ -202,4 +223,4 @@ En lugar de un historial de acciones, se guarda un snapshot JSON del estado en e
 | | `createContact(dto)` | `POST /api/contacts` |
 | | `updateContact(id, dto)` | `PUT /api/contacts/:id` |
 | | `deleteContact(id)` | `DELETE /api/contacts/:id` |
-| `SegmentService` | `getAudience(id, filters)` | `POST /api/segments/:id/audience` |
+| `SegmentService` | `getAudience(id, filters, previewMessage?)` | `POST /api/segments/:id/audience` |
