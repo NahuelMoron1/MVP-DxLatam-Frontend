@@ -57,6 +57,39 @@
   background: var(--bg-elevated);
 }
 
+/* Active filter chips */
+.active-filters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.active-filters-label {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  background: rgba(204, 34, 34, 0.12);
+  border: 1px solid rgba(204, 34, 34, 0.3);
+  color: #f87171;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.filter-chip:hover {
+  background: rgba(204, 34, 34, 0.22);
+}
+
 /* Table */
 .table {
   width: 100%;

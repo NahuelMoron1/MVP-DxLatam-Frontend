@@ -30,6 +30,7 @@ export class ContactService {
     if (filters?.search) params = params.set('search', filters.search);
     if (filters?.country) params = params.set('country', filters.country);
     if (filters?.status) params = params.set('status', filters.status);
+    if (filters?.created_after) params = params.set('created_after', filters.created_after);
 
     return this.http.get<PaginatedResponse<Contact>>(
       `${this.myAppUrl}${this.myApiUrl}`,

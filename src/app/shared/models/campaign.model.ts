@@ -7,6 +7,7 @@ export interface Campaign {
   name: string;
   description?: string;
   status: CampaignStatus;
+  node_count?: number;
   created_at: string;
   updated_at: string;
   deleted_at?: string | null;

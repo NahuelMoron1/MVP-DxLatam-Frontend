@@ -707,6 +707,36 @@
   margin-left: 4px;
 }
 
+/* Zoom controls */
+.zoom-controls {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 20;
+}
+
+.zoom-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+  cursor: pointer;
+}
+
+.zoom-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
 /* Empty canvas state */
 .canvas-empty {
   position: absolute;

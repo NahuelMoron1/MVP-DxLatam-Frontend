@@ -41,4 +41,5 @@ export interface ContactFilters {
   search?: string;
   country?: string;
   status?: ContactStatus;
+  created_after?: string;
 }

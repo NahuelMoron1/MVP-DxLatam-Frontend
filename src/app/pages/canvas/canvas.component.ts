@@ -62,6 +62,15 @@ export class CanvasComponent implements OnInit {
     this.nodes().find((n) => n.id === this.selectedNodeId()) ?? null,
   );
 
+  savedJson = signal('');
+  canUndo = computed(
+    () =>
+      this.savedJson() !== '' &&
+      JSON.stringify({ nodes: this.nodes(), edges: this.edges() }) !== this.savedJson(),
+  );
+
+  canvasScale = signal(1);
+
   invalidNodeIds = computed(() => {
     const ids = new Set<string>();
     for (const node of this.nodes()) {
@@ -130,6 +139,7 @@ export class CanvasComponent implements OnInit {
         this.campaign.set(c);
         this.nodes.set(c.nodes ?? []);
         this.edges.set(c.edges ?? []);
+        this.savedJson.set(JSON.stringify({ nodes: c.nodes ?? [], edges: c.edges ?? [] }));
         this.loading.set(false);
       },
       error: () => {
@@ -137,6 +147,29 @@ export class CanvasComponent implements OnInit {
         this.router.navigate(['/campaigns']);
       },
     });
+  }
+
+  // ─── Undo & Zoom ───────────────────────────────────────────────────────────
+
+  undo(): void {
+    if (!this.canUndo()) return;
+    const snap = JSON.parse(this.savedJson()) as { nodes: CanvasNode[]; edges: CanvasEdge[] };
+    this.nodes.set(snap.nodes);
+    this.edges.set(snap.edges);
+    this.selectedNodeId.set(null);
+    this.connectingFrom = null;
+  }
+
+  zoomIn(): void {
+    this.canvasScale.update((s) => Math.min(2, +(s * 1.25).toFixed(3)));
+  }
+
+  zoomOut(): void {
+    this.canvasScale.update((s) => Math.max(0.25, +(s / 1.25).toFixed(3)));
+  }
+
+  resetZoom(): void {
+    this.canvasScale.set(1);
   }
 
   // ─── Nodes ─────────────────────────────────────────────────────────────────
@@ -361,8 +394,9 @@ export class CanvasComponent implements OnInit {
   @HostListener('document:mousemove', ['$event'])
   onMouseMove(event: MouseEvent): void {
     if (!this.drag) return;
-    const nx = Math.max(0, this.drag.startNX + event.clientX - this.drag.startMX);
-    const ny = Math.max(0, this.drag.startNY + event.clientY - this.drag.startMY);
+    const scale = this.canvasScale();
+    const nx = Math.max(0, this.drag.startNX + (event.clientX - this.drag.startMX) / scale);
+    const ny = Math.max(0, this.drag.startNY + (event.clientY - this.drag.startMY) / scale);
     this.nodes.update((ns) =>
       ns.map((n) => (n.id === this.drag!.nodeId ? { ...n, x: nx, y: ny } : n)),
     );
@@ -431,6 +465,7 @@ export class CanvasComponent implements OnInit {
       .subscribe({
         next: () => {
           this.saving.set(false);
+          this.savedJson.set(JSON.stringify({ nodes: this.nodes(), edges: this.edges() }));
           if (!onDone) this.toast.show('Canvas guardado');
           onDone?.();
         },

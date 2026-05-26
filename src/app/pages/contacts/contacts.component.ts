@@ -37,6 +37,29 @@ export class ContactsComponent implements OnInit {
   searchQuery = '';
   selectedStatus: ContactStatus | '' = '';
   selectedCountry = '';
+  selectedCreatedAfter = '';
+
+  get activeFilters(): { label: string; field: 'country' | 'status' | 'createdAfter' }[] {
+    const filters: { label: string; field: 'country' | 'status' | 'createdAfter' }[] = [];
+    if (this.selectedCountry) filters.push({ label: this.selectedCountry, field: 'country' });
+    if (this.selectedStatus) filters.push({ label: this.selectedStatus === 'ACTIVE' ? 'Active' : 'Inactive', field: 'status' });
+    if (this.selectedCreatedAfter) filters.push({ label: `Últ. ${this.selectedCreatedAfter} días`, field: 'createdAfter' });
+    return filters;
+  }
+
+  clearFilter(field: 'country' | 'status' | 'createdAfter'): void {
+    if (field === 'country') this.selectedCountry = '';
+    else if (field === 'status') this.selectedStatus = '';
+    else this.selectedCreatedAfter = '';
+    this.page.set(1);
+    this.loadContacts();
+  }
+
+  private daysAgoIso(days: number): string {
+    const d = new Date();
+    d.setDate(d.getDate() - days);
+    return d.toISOString().split('T')[0];
+  }
 
   private searchTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -59,6 +82,7 @@ export class ContactsComponent implements OnInit {
       ...(this.searchQuery && { search: this.searchQuery }),
       ...(this.selectedStatus && { status: this.selectedStatus }),
       ...(this.selectedCountry && { country: this.selectedCountry }),
+      ...(this.selectedCreatedAfter && { created_after: this.daysAgoIso(+this.selectedCreatedAfter) }),
     };
 
     this.contactService.getContacts(filters).subscribe({

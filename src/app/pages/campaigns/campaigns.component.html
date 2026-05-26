@@ -2,7 +2,6 @@
   <header class="page-header">
     <h1 class="page-title">Campañas</h1>
     <div class="header-actions">
-      <button class="btn-secondary" disabled>FILTROS</button>
       <button class="btn-primary" (click)="openModal()">+ NUEVA CAMPAÑA</button>
     </div>
   </header>
@@ -53,7 +52,9 @@
                 ● {{ c.status === 'active' ? 'Active' : 'Draft' }}
               </span>
             </td>
-            <td class="muted">—</td>
+            <td class="muted">
+              {{ c.node_count != null ? c.node_count + ' nodo' + (c.node_count !== 1 ? 's' : '') : '—' }}
+            </td>
             <td class="muted">{{ c.created_at | date: 'd MMM yyyy' }}</td>
             <td class="actions-cell">
               <button class="icon-btn" title="Abrir" (click)="open(c.id); $event.stopPropagation()">

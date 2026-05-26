@@ -26,7 +26,24 @@
       <option value="ACTIVE">Active</option>
       <option value="INACTIVE">Inactive</option>
     </select>
+    <select class="filter-select" [(ngModel)]="selectedCreatedAfter" (change)="onFilterChange()">
+      <option value="">Fecha creación ▾</option>
+      <option value="7">Últimos 7 días</option>
+      <option value="30">Últimos 30 días</option>
+      <option value="90">Últimos 90 días</option>
+    </select>
   </div>
+
+  @if (activeFilters.length > 0) {
+    <div class="active-filters">
+      <span class="active-filters-label">Filtros activos:</span>
+      @for (f of activeFilters; track f.field) {
+        <button class="filter-chip" (click)="clearFilter(f.field)">
+          {{ f.label }} ✕
+        </button>
+      }
+    </div>
+  }
 
   @if (loading()) {
     <div class="state-msg">Cargando...</div>

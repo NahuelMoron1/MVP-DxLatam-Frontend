@@ -14,7 +14,7 @@
         </span>
       </div>
       <div class="topbar-right">
-        <button class="btn-secondary" [disabled]="saving()">DESHACER</button>
+        <button class="btn-secondary" (click)="undo()" [disabled]="saving() || !canUndo()">DESHACER</button>
         <button class="btn-primary" (click)="save()" [disabled]="saving()">
           {{ saving() ? 'GUARDANDO…' : 'GUARDAR' }}
         </button>
@@ -159,7 +159,9 @@
 
       <!-- ── Canvas ──────────────────────────────────────────────────────── -->
       <main class="canvas-area" (click)="deselectAll()">
-        <div class="canvas-inner">
+        <div class="canvas-inner"
+             [style.transform]="'scale(' + canvasScale() + ')'"
+             style="transform-origin: top left">
 
           <!-- SVG edges -->
           <svg class="edges-svg" [attr.width]="2400" [attr.height]="1400">
@@ -238,6 +240,12 @@
             </div>
           }
 
+        </div>
+
+        <div class="zoom-controls" (click)="$event.stopPropagation()">
+          <button class="zoom-btn" (click)="zoomIn()" title="Zoom in">+</button>
+          <button class="zoom-btn" (click)="zoomOut()" title="Zoom out">−</button>
+          <button class="zoom-btn" (click)="resetZoom()" title="Reset zoom">⊡</button>
         </div>
       </main>
     </div>
