@@ -1,19 +1,20 @@
 @if (loading()) {
   <div class="loading-state">Cargando campaña...</div>
 } @else if (campaign()) {
-  <div class="canvas-shell">
-    <!-- Top bar -->
+  <div class="canvas-shell" [class.is-connecting]="connectingFrom">
+
+    <!-- ── Topbar ──────────────────────────────────────────────────────── -->
     <header class="topbar">
       <div class="topbar-left">
         <button class="back-btn" (click)="back()">← Campañas</button>
-        <span class="separator">/</span>
+        <span class="sep">/</span>
         <span class="campaign-name">{{ campaign()!.name }}</span>
         <span class="badge" [class]="'badge--' + campaign()!.status">
           {{ campaign()!.status === 'active' ? 'Active' : 'Draft' }}
         </span>
       </div>
       <div class="topbar-right">
-        <button class="btn-secondary" disabled>DESHACER</button>
+        <button class="btn-secondary" [disabled]="saving()">DESHACER</button>
         <button class="btn-primary" (click)="save()" [disabled]="saving()">
           {{ saving() ? 'GUARDANDO…' : 'GUARDAR' }}
         </button>
@@ -21,33 +22,212 @@
     </header>
 
     <div class="workspace">
-      <!-- Node panel -->
-      <aside class="node-panel">
-        <p class="panel-title">NODOS</p>
 
-        <div class="node-card" (click)="addNode('segment')">
-          <div class="node-icon node-icon--segment">⊙</div>
-          <div class="node-info">
-            <span class="node-label">Segmento</span>
-            <span class="node-desc">Filtrar audiencia</span>
-          </div>
-        </div>
+      <!-- ── Side panel ──────────────────────────────────────────────────── -->
+      <aside class="panel">
 
-        <div class="node-card" (click)="addNode('sms')">
-          <div class="node-icon node-icon--sms">✉</div>
-          <div class="node-info">
-            <span class="node-label">SMS</span>
-            <span class="node-desc">Enviar mensaje</span>
+        @if (selectedNode(); as node) {
+
+          <!-- Node config header -->
+          <div class="panel-node-header">
+            <span class="panel-node-icon" [class]="'panel-node-icon--' + node.type">
+              {{ node.type === 'segment' ? '⊙' : '✉' }}
+            </span>
+            <span class="panel-node-label">
+              {{ node.type === 'segment' ? 'Segmento' : 'SMS' }}
+            </span>
+            <button class="panel-close" (click)="deselectAll()">✕</button>
           </div>
-        </div>
+
+          @if (node.type === 'segment') {
+            <!-- ── Segment config ──────────────────────────────────────── -->
+            <div class="panel-section">
+              <label class="panel-label">Lógica</label>
+              <div class="logic-toggle">
+                <button
+                  class="logic-btn"
+                  [class.logic-btn--active]="editLogic === 'AND'"
+                  (click)="editLogic = 'AND'; onLogicChange()"
+                >AND</button>
+                <button
+                  class="logic-btn"
+                  [class.logic-btn--active]="editLogic === 'OR'"
+                  (click)="editLogic = 'OR'; onLogicChange()"
+                >OR</button>
+              </div>
+            </div>
+
+            <div class="panel-section">
+              <label class="panel-label">Condiciones</label>
+
+              @for (cond of editConditions; track $index) {
+                <div class="condition-row">
+                  <div class="cond-row-top">
+                    <select class="cond-select" [(ngModel)]="cond.field" (change)="onConditionChange()">
+                      @for (f of FIELDS; track f.value) {
+                        <option [value]="f.value">{{ f.label }}</option>
+                      }
+                    </select>
+                    <select class="cond-op" [(ngModel)]="cond.operator" (change)="onConditionChange()">
+                      @for (op of OPERATORS; track op.value) {
+                        <option [value]="op.value">{{ op.label }}</option>
+                      }
+                    </select>
+                  </div>
+                  <div class="cond-row-bottom">
+                    <input
+                      class="cond-value"
+                      [(ngModel)]="cond.value"
+                      (input)="onConditionChange()"
+                      [placeholder]="cond.operator === 'in' ? 'a, b, c' : 'valor'"
+                    />
+                    <button class="cond-remove" (click)="removeCondition($index)">✕</button>
+                  </div>
+                </div>
+              }
+
+              <button class="add-condition-btn" (click)="addCondition()">+ Condición</button>
+            </div>
+
+            <div class="panel-section audience-section">
+              <button
+                class="btn-recalc"
+                (click)="recalculate()"
+                [disabled]="audienceLoading"
+              >
+                {{ audienceLoading ? 'Calculando…' : 'RECALCULAR' }}
+              </button>
+              @if (audienceCount !== null) {
+                <div class="audience-result">
+                  <span class="audience-count">{{ audienceCount }}</span>
+                  <span class="audience-label">contactos</span>
+                </div>
+              }
+            </div>
+
+          } @else {
+            <!-- ── SMS config ──────────────────────────────────────────── -->
+            <div class="panel-section">
+              <label class="panel-label">Mensaje</label>
+              <textarea
+                class="sms-textarea"
+                [(ngModel)]="editSmsMessage"
+                (input)="onSmsChange()"
+                placeholder="Escribí el mensaje SMS aquí..."
+                rows="6"
+                maxlength="480"
+              ></textarea>
+              <div class="sms-meta">
+                <span [class.sms-over]="smsChars > 160">{{ smsChars }} / 160</span>
+                @if (smsSegments > 1) {
+                  <span class="sms-segments">{{ smsSegments }} SMS</span>
+                }
+              </div>
+            </div>
+          }
+
+        } @else {
+          <!-- ── Node palette ──────────────────────────────────────────── -->
+          <p class="palette-title">NODOS</p>
+
+          <div class="palette-card" (click)="addNode('segment')">
+            <div class="palette-icon palette-icon--segment">⊙</div>
+            <div class="palette-info">
+              <span class="palette-label">Segmento</span>
+              <span class="palette-desc">Filtrar audiencia</span>
+            </div>
+          </div>
+
+          <div class="palette-card" (click)="addNode('sms')">
+            <div class="palette-icon palette-icon--sms">✉</div>
+            <div class="palette-info">
+              <span class="palette-label">SMS</span>
+              <span class="palette-desc">Enviar mensaje</span>
+            </div>
+          </div>
+
+          @if (connectingFrom) {
+            <div class="connecting-hint">
+              Hacé click en otro nodo para conectar
+            </div>
+          }
+        }
       </aside>
 
-      <!-- Canvas area -->
-      <main class="canvas-area">
-        <div class="canvas-empty">
-          <div class="canvas-empty-icon">⬡</div>
-          <p class="canvas-empty-text">Arrastrá un nodo al canvas para empezar</p>
-          <p class="canvas-empty-sub">Segmento → SMS</p>
+      <!-- ── Canvas ──────────────────────────────────────────────────────── -->
+      <main class="canvas-area" (click)="deselectAll()">
+        <div class="canvas-inner">
+
+          <!-- SVG edges -->
+          <svg class="edges-svg" [attr.width]="2400" [attr.height]="1400">
+            <defs>
+              <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L8,3 z" fill="#555" />
+              </marker>
+            </defs>
+            @for (e of edges(); track e.id) {
+              <path
+                [attr.d]="edgePath(e)"
+                class="edge-path"
+                marker-end="url(#arrow)"
+              />
+            }
+          </svg>
+
+          <!-- Edge delete buttons -->
+          @for (e of edges(); track e.id) {
+            <button
+              class="edge-delete"
+              [style.left.px]="edgeMid(e).x - 10"
+              [style.top.px]="edgeMid(e).y - 10"
+              (click)="deleteEdge(e.id, $event)"
+              title="Eliminar conexión"
+            >✕</button>
+          }
+
+          <!-- Nodes -->
+          @for (node of nodes(); track node.id) {
+            <div
+              class="node"
+              [class.node--selected]="node.id === selectedNodeId()"
+              [class.node--segment]="node.type === 'segment'"
+              [class.node--sms]="node.type === 'sms'"
+              [class.node--connecting-source]="node.id === connectingFrom"
+              [style.left.px]="node.x"
+              [style.top.px]="node.y"
+              [style.width.px]="NODE_W"
+              (mousedown)="onNodeMouseDown($event, node.id)"
+              (click)="select(node.id); $event.stopPropagation()"
+            >
+              <!-- Input port -->
+              <div class="port port--in"></div>
+
+              <!-- Node body -->
+              <div class="node-body">
+                <div class="node-header">
+                  <span class="node-icon">{{ node.type === 'segment' ? '⊙' : '✉' }}</span>
+                  <span class="node-type">{{ node.type === 'segment' ? 'Segmento' : 'SMS' }}</span>
+                  <button class="node-delete" (click)="deleteNode(node.id, $event)">✕</button>
+                </div>
+                <div class="node-summary">{{ nodeSummary(node) }}</div>
+              </div>
+
+              <!-- Output port -->
+              <div
+                class="port port--out"
+                (click)="startConnect(node.id, $event)"
+                title="Conectar"
+              ></div>
+            </div>
+          }
+
+          @if (nodes().length === 0) {
+            <div class="canvas-empty">
+              <div class="canvas-empty-icon">⬡</div>
+              <p class="canvas-empty-text">Hacé click en un nodo del panel para agregarlo</p>
+            </div>
+          }
+
         </div>
       </main>
     </div>
