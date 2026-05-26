@@ -5,6 +5,7 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "build:prod": "ng build --configuration production && rm -rf ../FE_Builder/* && mkdir -p ../FE_Builder && cp -r dist/MVP-Campaign/browser/* ../FE_Builder/",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
