@@ -1,1 +1,49 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+  --bg: #1f2024;
+  --bg-sidebar: #131416;
+  --bg-elevated: #2a2b2e;
+  --bg-input: #222327;
+  --red: #cc2222;
+  --red-hover: #aa1818;
+  --text: #e0e0e0;
+  --text-muted: #777;
+  --border: #2e2e32;
+  --badge-active: #16a34a;
+  --badge-draft: #555;
+  --badge-inactive: #555;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}

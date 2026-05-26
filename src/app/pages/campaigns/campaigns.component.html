@@ -1,0 +1,150 @@
+<div class="page">
+  <header class="page-header">
+    <h1 class="page-title">Campañas</h1>
+    <div class="header-actions">
+      <button class="btn-secondary" disabled>FILTROS</button>
+      <button class="btn-primary" (click)="openModal()">+ NUEVA CAMPAÑA</button>
+    </div>
+  </header>
+
+  <div class="filters-bar">
+    <input
+      class="search-input"
+      type="text"
+      placeholder="Buscar campañas..."
+      [(ngModel)]="searchQuery"
+      (input)="onSearch()"
+    />
+    <select
+      class="filter-select"
+      [(ngModel)]="selectedStatus"
+      (change)="onSearch()"
+    >
+      <option value="">Estado ▾</option>
+      <option value="active">Active</option>
+      <option value="draft">Draft</option>
+    </select>
+  </div>
+
+  @if (loading()) {
+    <div class="state-msg">Cargando...</div>
+  } @else {
+    <table class="table">
+      <thead>
+        <tr>
+          <th>NOMBRE</th>
+          <th>ESTADO</th>
+          <th>NODOS</th>
+          <th>CREADO</th>
+          <th>ACCIONES</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (c of campaigns(); track c.id) {
+          <tr class="table-row" (click)="open(c.id)">
+            <td class="name-cell">
+              <span class="campaign-name">{{ c.name }}</span>
+              @if (c.description) {
+                <span class="campaign-desc">{{ c.description }}</span>
+              }
+            </td>
+            <td>
+              <span class="badge" [class]="'badge--' + c.status">
+                ● {{ c.status === 'active' ? 'Active' : 'Draft' }}
+              </span>
+            </td>
+            <td class="muted">—</td>
+            <td class="muted">{{ c.created_at | date: 'd MMM yyyy' }}</td>
+            <td class="actions-cell">
+              <button class="icon-btn" title="Abrir" (click)="open(c.id); $event.stopPropagation()">
+                ↗
+              </button>
+              <button
+                class="icon-btn icon-btn--danger"
+                title="Eliminar"
+                (click)="delete(c.id, $event)"
+              >
+                ✕
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5" class="state-msg">No hay campañas</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    <div class="pagination">
+      <span class="pagination-info">
+        Mostrando {{ campaigns().length }} de {{ total() }} campañas
+      </span>
+      <div class="pagination-controls">
+        <button
+          class="page-btn"
+          (click)="setPage(page() - 1)"
+          [disabled]="page() === 1"
+        >
+          ‹
+        </button>
+        @for (p of pages(); track p) {
+          <button
+            class="page-btn"
+            [class.page-btn--active]="p === page()"
+            (click)="setPage(p)"
+          >
+            {{ p }}
+          </button>
+        }
+        <button
+          class="page-btn"
+          (click)="setPage(page() + 1)"
+          [disabled]="page() === totalPages()"
+        >
+          ›
+        </button>
+      </div>
+    </div>
+  }
+</div>
+
+@if (showModal()) {
+  <div class="overlay" (click)="closeModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h2 class="modal-title">Nueva Campaña</h2>
+
+      <div class="form-group">
+        <label class="form-label">Nombre *</label>
+        <input
+          class="form-input"
+          type="text"
+          [(ngModel)]="newCampaign.name"
+          placeholder="Nombre de la campaña"
+          autofocus
+        />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Descripción</label>
+        <textarea
+          class="form-input form-textarea"
+          [(ngModel)]="newCampaign.description"
+          placeholder="Descripción opcional"
+          rows="3"
+        ></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-secondary" (click)="closeModal()">Cancelar</button>
+        <button
+          class="btn-primary"
+          (click)="create()"
+          [disabled]="!newCampaign.name.trim()"
+        >
+          Crear y abrir
+        </button>
+      </div>
+    </div>
+  </div>
+}

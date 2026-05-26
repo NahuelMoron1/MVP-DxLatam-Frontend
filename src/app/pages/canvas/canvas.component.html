@@ -1,0 +1,55 @@
+@if (loading()) {
+  <div class="loading-state">Cargando campaña...</div>
+} @else if (campaign()) {
+  <div class="canvas-shell">
+    <!-- Top bar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="back-btn" (click)="back()">← Campañas</button>
+        <span class="separator">/</span>
+        <span class="campaign-name">{{ campaign()!.name }}</span>
+        <span class="badge" [class]="'badge--' + campaign()!.status">
+          {{ campaign()!.status === 'active' ? 'Active' : 'Draft' }}
+        </span>
+      </div>
+      <div class="topbar-right">
+        <button class="btn-secondary" disabled>DESHACER</button>
+        <button class="btn-primary" (click)="save()" [disabled]="saving()">
+          {{ saving() ? 'GUARDANDO…' : 'GUARDAR' }}
+        </button>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <!-- Node panel -->
+      <aside class="node-panel">
+        <p class="panel-title">NODOS</p>
+
+        <div class="node-card" (click)="addNode('segment')">
+          <div class="node-icon node-icon--segment">⊙</div>
+          <div class="node-info">
+            <span class="node-label">Segmento</span>
+            <span class="node-desc">Filtrar audiencia</span>
+          </div>
+        </div>
+
+        <div class="node-card" (click)="addNode('sms')">
+          <div class="node-icon node-icon--sms">✉</div>
+          <div class="node-info">
+            <span class="node-label">SMS</span>
+            <span class="node-desc">Enviar mensaje</span>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Canvas area -->
+      <main class="canvas-area">
+        <div class="canvas-empty">
+          <div class="canvas-empty-icon">⬡</div>
+          <p class="canvas-empty-text">Arrastrá un nodo al canvas para empezar</p>
+          <p class="canvas-empty-sub">Segmento → SMS</p>
+        </div>
+      </main>
+    </div>
+  </div>
+}

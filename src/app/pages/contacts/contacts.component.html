@@ -1,0 +1,125 @@
+<div class="page">
+  <header class="page-header">
+    <h1 class="page-title">Contactos</h1>
+  </header>
+
+  <div class="filters-bar">
+    <input
+      class="search-input"
+      type="text"
+      placeholder="Buscar contactos..."
+      [(ngModel)]="searchQuery"
+      (input)="onSearch()"
+    />
+    <select
+      class="filter-select"
+      [(ngModel)]="selectedCountry"
+      (change)="onSearch()"
+    >
+      <option value="">País ▾</option>
+      <option value="AR">Argentina</option>
+      <option value="MX">México</option>
+      <option value="CL">Chile</option>
+      <option value="CO">Colombia</option>
+      <option value="PE">Perú</option>
+      <option value="BR">Brasil</option>
+    </select>
+    <select
+      class="filter-select"
+      [(ngModel)]="selectedStatus"
+      (change)="onSearch()"
+    >
+      <option value="">Estado ▾</option>
+      <option value="ACTIVE">Active</option>
+      <option value="INACTIVE">Inactive</option>
+    </select>
+  </div>
+
+  @if (loading()) {
+    <div class="state-msg">Cargando...</div>
+  } @else {
+    <table class="table">
+      <thead>
+        <tr>
+          <th>CONTACTO</th>
+          <th>EMAIL</th>
+          <th>TELÉFONO</th>
+          <th>PAÍS</th>
+          <th>ESTADO</th>
+          <th>CREADO</th>
+          <th>ACCIONES</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (c of contacts(); track c.id) {
+          <tr class="table-row">
+            <td>
+              <div class="contact-cell">
+                <div class="avatar">{{ initials(c) }}</div>
+                <div class="name-cell">
+                  <span class="contact-name">{{ c.first_name }} {{ c.last_name }}</span>
+                  @if (c.city) {
+                    <span class="contact-city">{{ c.city }}</span>
+                  }
+                </div>
+              </div>
+            </td>
+            <td class="muted">{{ c.email }}</td>
+            <td class="muted">{{ c.phone }}</td>
+            <td class="muted">{{ c.country }}</td>
+            <td>
+              <span class="badge" [class]="'badge--' + c.status.toLowerCase()">
+                ● {{ c.status === 'ACTIVE' ? 'Active' : 'Inactive' }}
+              </span>
+            </td>
+            <td class="muted">{{ c.created_at | date: 'd MMM yyyy' }}</td>
+            <td class="actions-cell">
+              <button
+                class="icon-btn icon-btn--danger"
+                title="Eliminar"
+                (click)="delete(c.id, $event)"
+              >
+                ✕
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="7" class="state-msg">No hay contactos</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    <div class="pagination">
+      <span class="pagination-info">
+        Mostrando {{ contacts().length }} de {{ total() }} contactos
+      </span>
+      <div class="pagination-controls">
+        <button
+          class="page-btn"
+          (click)="setPage(page() - 1)"
+          [disabled]="page() === 1"
+        >
+          ‹
+        </button>
+        @for (p of pages(); track p) {
+          <button
+            class="page-btn"
+            [class.page-btn--active]="p === page()"
+            (click)="setPage(p)"
+          >
+            {{ p }}
+          </button>
+        }
+        <button
+          class="page-btn"
+          (click)="setPage(page() + 1)"
+          [disabled]="page() === totalPages()"
+        >
+          ›
+        </button>
+      </div>
+    </div>
+  }
+</div>
