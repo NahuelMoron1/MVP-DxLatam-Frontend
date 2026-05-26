@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { CampaignService } from '../../shared/services/campaign.service';
+import { CanvasService } from '../../shared/services/canvas.service';
 import { ToastService } from '../../shared/services/toast.service';
 import {
   Campaign,
@@ -11,6 +12,7 @@ import {
   CreateCampaignDto,
   UpdateCampaignDto,
 } from '../../shared/models/campaign.model';
+import { CanvasNode, CanvasEdge } from '../../shared/models/canvas.model';
 
 @Component({
   selector: 'app-campaigns',
@@ -21,6 +23,7 @@ import {
 })
 export class CampaignsComponent implements OnInit {
   private campaignService = inject(CampaignService);
+  private canvasService = inject(CanvasService);
   private router = inject(Router);
   private toast = inject(ToastService);
 
@@ -140,6 +143,62 @@ export class CampaignsComponent implements OnInit {
 
   open(id: string): void {
     this.router.navigate(['/campaigns', id]);
+  }
+
+  triggerImport(): void {
+    (document.getElementById('campaign-import-file') as HTMLInputElement).click();
+  }
+
+  onImportFile(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target?.result as string) as {
+          name: string;
+          description?: string;
+          nodes: CanvasNode[];
+          edges: CanvasEdge[];
+        };
+        if (!data.name || !Array.isArray(data.nodes) || !Array.isArray(data.edges)) {
+          this.toast.show('Archivo inválido: formato incorrecto', 'error');
+          return;
+        }
+        this.campaignService
+          .createCampaign({ name: data.name, description: data.description })
+          .subscribe({
+            next: (campaign) => {
+              this.canvasService
+                .saveCanvas(campaign.id, {
+                  nodes: data.nodes.map((n) => ({
+                    id: n.id,
+                    type: n.type,
+                    x: n.x,
+                    y: n.y,
+                    config: n.config,
+                  })),
+                  edges: data.edges.map((e) => ({
+                    id: e.id,
+                    source_node_id: e.source_node_id,
+                    target_node_id: e.target_node_id,
+                  })),
+                })
+                .subscribe({
+                  next: () => this.router.navigate(['/campaigns', campaign.id]),
+                  error: () => this.router.navigate(['/campaigns', campaign.id]),
+                });
+            },
+            error: (err) =>
+              this.toast.showError(err, 'Error al importar la campaña'),
+          });
+      } catch {
+        this.toast.show('El archivo no es un JSON válido', 'error');
+      }
+      input.value = '';
+    };
+    reader.readAsText(file);
   }
 
   delete(id: string, event: MouseEvent): void {

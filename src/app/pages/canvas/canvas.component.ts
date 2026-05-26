@@ -1,7 +1,9 @@
 import {
   Component,
+  ElementRef,
   HostListener,
   OnInit,
+  ViewChild,
   computed,
   inject,
   signal,
@@ -91,6 +93,8 @@ export class CanvasComponent implements OnInit {
     return ids;
   });
 
+  @ViewChild('smsTextarea') smsTextareaRef?: ElementRef<HTMLTextAreaElement>;
+
   connectingFrom: string | null = null;
   private drag: DragState | null = null;
 
@@ -100,6 +104,9 @@ export class CanvasComponent implements OnInit {
   audienceCount: number | null = null;
   audienceLoading = false;
   audienceCounts = signal<Map<string, number>>(new Map());
+
+  previewMessages = signal<string[]>([]);
+  previewLoading = false;
 
   private readonly GSM7_REGEX =
     /^[@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞ\x1bÆæßÉ !"#¤%&'()*+,\-.\/0-9:;<=>?¡A-ZÄÖÑÜ§¿a-zäöñüà|\^€{}\[\]~\\]*$/;
@@ -111,6 +118,12 @@ export class CanvasComponent implements OnInit {
   get smsLimit(): number {
     return this.isUnicode ? 70 : 160;
   }
+
+  readonly SMS_VARS = [
+    { token: '{{name}}', label: '{{name}}' },
+    { token: '{{country}}', label: '{{country}}' },
+    { token: '{{city}}', label: '{{city}}' },
+  ];
 
   readonly FIELDS = [
     { value: 'country', label: 'País' },
@@ -207,6 +220,7 @@ export class CanvasComponent implements OnInit {
     }
     this.connectingFrom = null;
     this.selectedNodeId.set(id);
+    this.previewMessages.set([]);
     this.audienceCount = this.audienceCounts().get(id) ?? null;
     const node = this.nodes().find((n) => n.id === id);
     if (!node) return;
@@ -327,6 +341,76 @@ export class CanvasComponent implements OnInit {
         n.id === id ? { ...n, config: { message: this.editSmsMessage } } : n,
       ),
     );
+  }
+
+  insertVar(variable: string): void {
+    const textarea = this.smsTextareaRef?.nativeElement;
+    const start = textarea?.selectionStart ?? this.editSmsMessage.length;
+    const end = textarea?.selectionEnd ?? start;
+    this.editSmsMessage =
+      this.editSmsMessage.slice(0, start) +
+      variable +
+      this.editSmsMessage.slice(end);
+    this.onSmsChange();
+    setTimeout(() => {
+      if (!textarea) return;
+      textarea.focus();
+      const pos = start + variable.length;
+      textarea.setSelectionRange(pos, pos);
+    });
+  }
+
+  previewSms(): void {
+    const smsId = this.selectedNodeId();
+    if (!smsId || !this.editSmsMessage.trim()) return;
+    const segmentEdge = this.edges().find((e) => e.target_node_id === smsId);
+    if (!segmentEdge) {
+      this.toast.show('Conectá un nodo Segmento primero', 'error');
+      return;
+    }
+    const segmentNode = this.nodes().find(
+      (n) => n.id === segmentEdge.source_node_id && n.type === 'segment',
+    );
+    if (!segmentNode) {
+      this.toast.show('Conectá un nodo Segmento primero', 'error');
+      return;
+    }
+    this.previewLoading = true;
+    this.previewMessages.set([]);
+    this.segmentService
+      .getAudience(segmentNode.id, segmentNode.config as FilterGroup, this.editSmsMessage)
+      .subscribe({
+        next: (res) => {
+          this.previewMessages.set(res.preview_messages ?? []);
+          this.previewLoading = false;
+        },
+        error: () => {
+          this.previewLoading = false;
+          this.toast.show('Error al previsualizar', 'error');
+        },
+      });
+  }
+
+  // ─── Export ────────────────────────────────────────────────────────────────
+
+  exportCanvas(): void {
+    const c = this.campaign();
+    if (!c) return;
+    const payload = {
+      name: c.name,
+      description: c.description,
+      nodes: this.nodes(),
+      edges: this.edges(),
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {
+      type: 'application/json',
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${c.name.replace(/\s+/g, '_')}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   // ─── Edges ─────────────────────────────────────────────────────────────────

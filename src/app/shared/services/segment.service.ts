@@ -20,10 +20,14 @@ export class SegmentService {
   getAudience(
     nodeId: string,
     filters?: FilterNode,
+    previewMessage?: string,
   ): Observable<AudienceResponse> {
+    const body = previewMessage
+      ? { ...(filters ?? {}), preview_message: previewMessage }
+      : (filters ?? {});
     return this.http.post<AudienceResponse>(
       `${this.myAppUrl}${this.myApiUrl}${nodeId}/audience`,
-      filters ?? {},
+      body,
     );
   }
 }

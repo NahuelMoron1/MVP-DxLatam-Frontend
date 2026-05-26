@@ -2,6 +2,14 @@
   <header class="page-header">
     <h1 class="page-title">Campañas</h1>
     <div class="header-actions">
+      <input
+        type="file"
+        id="campaign-import-file"
+        accept=".json"
+        style="display:none"
+        (change)="onImportFile($event)"
+      />
+      <button class="btn-secondary" (click)="triggerImport()">↑ IMPORTAR</button>
       <button class="btn-primary" (click)="openModal()">+ NUEVA CAMPAÑA</button>
     </div>
   </header>

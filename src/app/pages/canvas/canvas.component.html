@@ -14,6 +14,7 @@
         </span>
       </div>
       <div class="topbar-right">
+        <button class="btn-secondary" (click)="exportCanvas()">↓ EXPORTAR</button>
         <button class="btn-secondary" (click)="undo()" [disabled]="saving() || !canUndo()">DESHACER</button>
         <button class="btn-primary" (click)="save()" [disabled]="saving()">
           {{ saving() ? 'GUARDANDO…' : 'GUARDAR' }}
@@ -110,6 +111,7 @@
             <div class="panel-section">
               <label class="panel-label">Mensaje</label>
               <textarea
+                #smsTextarea
                 class="sms-textarea"
                 [(ngModel)]="editSmsMessage"
                 (input)="onSmsChange()"
@@ -117,6 +119,12 @@
                 rows="6"
                 maxlength="480"
               ></textarea>
+              <div class="sms-vars">
+                <span class="sms-vars-label">Variables:</span>
+                @for (v of SMS_VARS; track v.token) {
+                  <button class="var-chip" (click)="insertVar(v.token)">{{ v.label }}</button>
+                }
+              </div>
               <div class="sms-meta">
                 <span [class.sms-over]="smsChars > smsLimit">
                   {{ smsChars }} / {{ smsLimit }}
@@ -126,6 +134,24 @@
                   <span class="sms-segments">{{ smsSegments }} SMS</span>
                 }
               </div>
+            </div>
+
+            <div class="panel-section audience-section">
+              <button
+                class="btn-recalc"
+                (click)="previewSms()"
+                [disabled]="previewLoading || !editSmsMessage.trim()"
+              >
+                {{ previewLoading ? 'Calculando…' : 'PREVISUALIZAR' }}
+              </button>
+              @if (previewMessages().length > 0) {
+                <div class="preview-msgs">
+                  <span class="panel-label">Vista previa (primeros {{ previewMessages().length }})</span>
+                  @for (msg of previewMessages(); track $index) {
+                    <div class="preview-msg">{{ msg }}</div>
+                  }
+                </div>
+              }
             </div>
           }
 

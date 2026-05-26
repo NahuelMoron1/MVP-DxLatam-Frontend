@@ -476,6 +476,51 @@
   padding: 1px 6px;
 }
 
+.sms-vars {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.sms-vars-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.var-chip {
+  background: rgba(204, 34, 34, 0.1);
+  border: 1px solid rgba(204, 34, 34, 0.25);
+  color: #f87171;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 0.72rem;
+  cursor: pointer;
+  font-family: monospace;
+  transition: background 0.15s;
+}
+
+.var-chip:hover {
+  background: rgba(204, 34, 34, 0.2);
+}
+
+.preview-msgs {
+  margin-top: 12px;
+}
+
+.preview-msg {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px 10px;
+  font-size: 0.82rem;
+  color: var(--text);
+  margin-top: 6px;
+  word-break: break-word;
+  line-height: 1.4;
+}
+
 /* ── Canvas area ────────────────────────────────────────────────────────────── */
 
 .canvas-area {

@@ -26,4 +26,5 @@ export type FilterNode = FilterLeaf | FilterGroup;
 export interface AudienceResponse {
   count: number;
   contacts: Contact[];
+  preview_messages?: string[];
 }
