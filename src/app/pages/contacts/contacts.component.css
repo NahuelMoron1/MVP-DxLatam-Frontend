@@ -16,6 +16,11 @@
   color: var(--text);
 }
 
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
 /* Filters */
 .filters-bar {
   display: flex;

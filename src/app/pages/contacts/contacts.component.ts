@@ -189,6 +189,45 @@ export class ContactsComponent implements OnInit {
     });
   }
 
+  // ─── Export ────────────────────────────────────────────────────────────────
+
+  exportContacts(): void {
+    const filters: ContactFilters = {
+      page: 1,
+      pageSize: 10000,
+      ...(this.searchQuery && { search: this.searchQuery }),
+      ...(this.selectedStatus && { status: this.selectedStatus }),
+      ...(this.selectedCountry && { country: this.selectedCountry }),
+      ...(this.selectedCreatedAfter && { created_after: this.daysAgoIso(+this.selectedCreatedAfter) }),
+    };
+    this.contactService.getContacts(filters).subscribe({
+      next: (res) => {
+        const headers = ['Nombre', 'Apellido', 'Email', 'Teléfono', 'País', 'Ciudad', 'Estado', 'Creado'];
+        const rows = res.data.map((c) => [
+          c.first_name,
+          c.last_name,
+          c.email,
+          c.phone ?? '',
+          c.country ?? '',
+          c.city ?? '',
+          c.status,
+          new Date(c.created_at).toLocaleDateString('es'),
+        ]);
+        const csv = [headers, ...rows]
+          .map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(','))
+          .join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'contactos.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+      },
+      error: () => this.toast.show('Error al exportar contactos', 'error'),
+    });
+  }
+
   // ─── Helpers ───────────────────────────────────────────────────────────────
 
   private emptyContact(): CreateContactDto {
