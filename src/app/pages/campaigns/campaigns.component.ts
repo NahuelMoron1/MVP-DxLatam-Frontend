@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { CampaignService } from '../../shared/services/campaign.service';
+import { ToastService } from '../../shared/services/toast.service';
 import {
   Campaign,
   CampaignFilters,
@@ -21,6 +22,7 @@ import {
 export class CampaignsComponent implements OnInit {
   private campaignService = inject(CampaignService);
   private router = inject(Router);
+  private toast = inject(ToastService);
 
   readonly pageSize = 10;
 
@@ -94,6 +96,7 @@ export class CampaignsComponent implements OnInit {
         this.closeModal();
         this.router.navigate(['/campaigns', campaign.id]);
       },
+      error: () => this.toast.show('Error al crear la campaña', 'error'),
     });
   }
 
@@ -119,7 +122,9 @@ export class CampaignsComponent implements OnInit {
       next: () => {
         this.closeEditModal();
         this.loadCampaigns();
+        this.toast.show('Campaña actualizada');
       },
+      error: () => this.toast.show('Error al actualizar la campaña', 'error'),
     });
   }
 
@@ -131,7 +136,11 @@ export class CampaignsComponent implements OnInit {
     event.stopPropagation();
     if (!confirm('¿Eliminar esta campaña?')) return;
     this.campaignService.deleteCampaign(id).subscribe({
-      next: () => this.loadCampaigns(),
+      next: () => {
+        this.loadCampaigns();
+        this.toast.show('Campaña eliminada');
+      },
+      error: () => this.toast.show('Error al eliminar la campaña', 'error'),
     });
   }
 }

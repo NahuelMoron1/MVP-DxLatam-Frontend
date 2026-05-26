@@ -11,6 +11,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { CampaignService } from '../../shared/services/campaign.service';
 import { CanvasService } from '../../shared/services/canvas.service';
 import { SegmentService } from '../../shared/services/segment.service';
+import { ToastService } from '../../shared/services/toast.service';
 import { CampaignWithCanvas } from '../../shared/models/campaign.model';
 import { CanvasEdge, CanvasNode, NodeType } from '../../shared/models/canvas.model';
 import { FilterGroup, FilterLeaf, FilterOperator } from '../../shared/models/filter.model';
@@ -45,6 +46,7 @@ export class CanvasComponent implements OnInit {
   private campaignService = inject(CampaignService);
   private canvasService = inject(CanvasService);
   private segmentService = inject(SegmentService);
+  private toast = inject(ToastService);
 
   readonly NODE_W = NODE_W;
   readonly NODE_H = NODE_H;
@@ -365,9 +367,13 @@ export class CanvasComponent implements OnInit {
       .subscribe({
         next: () => {
           this.saving.set(false);
+          if (!onDone) this.toast.show('Canvas guardado');
           onDone?.();
         },
-        error: () => this.saving.set(false),
+        error: () => {
+          this.saving.set(false);
+          this.toast.show('Error al guardar el canvas', 'error');
+        },
       });
   }
 

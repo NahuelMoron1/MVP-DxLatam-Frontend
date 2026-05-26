@@ -2,6 +2,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { ContactService } from '../../shared/services/contact.service';
+import { ToastService } from '../../shared/services/toast.service';
 import {
   Contact,
   ContactFilters,
@@ -19,6 +20,7 @@ import {
 })
 export class ContactsComponent implements OnInit {
   private contactService = inject(ContactService);
+  private toast = inject(ToastService);
 
   readonly pageSize = 10;
 
@@ -99,7 +101,9 @@ export class ContactsComponent implements OnInit {
       next: () => {
         this.closeCreateModal();
         this.loadContacts();
+        this.toast.show('Contacto creado exitosamente');
       },
+      error: () => this.toast.show('Error al crear el contacto', 'error'),
     });
   }
 
@@ -126,12 +130,14 @@ export class ContactsComponent implements OnInit {
   }
 
   update(): void {
-    if (!this.editingContact || !this.isValid(this.editForm as CreateContactDto)) return;
+    if (!this.editingContact || !this.isEditValid()) return;
     this.contactService.updateContact(this.editingContact.id, this.editForm).subscribe({
       next: () => {
         this.closeEditModal();
         this.loadContacts();
+        this.toast.show('Contacto actualizado');
       },
+      error: () => this.toast.show('Error al actualizar el contacto', 'error'),
     });
   }
 
@@ -141,7 +147,11 @@ export class ContactsComponent implements OnInit {
     event.stopPropagation();
     if (!confirm('¿Eliminar este contacto?')) return;
     this.contactService.deleteContact(id).subscribe({
-      next: () => this.loadContacts(),
+      next: () => {
+        this.loadContacts();
+        this.toast.show('Contacto eliminado');
+      },
+      error: () => this.toast.show('Error al eliminar el contacto', 'error'),
     });
   }
 
