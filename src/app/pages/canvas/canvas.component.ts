@@ -107,9 +107,9 @@ export class CanvasComponent implements OnInit {
     { value: 'country', label: 'País' },
     { value: 'status', label: 'Estado' },
     { value: 'created_at', label: 'Fecha de creación' },
-    { value: 'age', label: 'Edad' },
-    { value: 'plan', label: 'Plan' },
-    { value: 'last_purchase_days', label: 'Días últ. compra' },
+    { value: 'attributes.age', label: 'Edad' },
+    { value: 'attributes.plan', label: 'Plan' },
+    { value: 'attributes.last_purchase_days', label: 'Días últ. compra' },
   ];
 
   readonly OPERATORS: { value: FilterOperator; label: string }[] = [
