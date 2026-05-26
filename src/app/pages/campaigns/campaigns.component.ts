@@ -8,6 +8,7 @@ import {
   CampaignFilters,
   CampaignStatus,
   CreateCampaignDto,
+  UpdateCampaignDto,
 } from '../../shared/models/campaign.model';
 
 @Component({
@@ -38,6 +39,10 @@ export class CampaignsComponent implements OnInit {
   selectedStatus: CampaignStatus | '' = '';
 
   newCampaign: CreateCampaignDto = { name: '', description: '' };
+
+  showEditModal = signal(false);
+  editingCampaign: Campaign | null = null;
+  editForm: UpdateCampaignDto = { name: '', description: '', status: 'draft' };
 
   ngOnInit(): void {
     this.loadCampaigns();
@@ -88,6 +93,32 @@ export class CampaignsComponent implements OnInit {
       next: (campaign) => {
         this.closeModal();
         this.router.navigate(['/campaigns', campaign.id]);
+      },
+    });
+  }
+
+  openEditModal(campaign: Campaign, event: MouseEvent): void {
+    event.stopPropagation();
+    this.editingCampaign = campaign;
+    this.editForm = {
+      name: campaign.name,
+      description: campaign.description ?? '',
+      status: campaign.status,
+    };
+    this.showEditModal.set(true);
+  }
+
+  closeEditModal(): void {
+    this.showEditModal.set(false);
+    this.editingCampaign = null;
+  }
+
+  update(): void {
+    if (!this.editingCampaign || !this.editForm.name?.trim()) return;
+    this.campaignService.updateCampaign(this.editingCampaign.id, this.editForm).subscribe({
+      next: () => {
+        this.closeEditModal();
+        this.loadCampaigns();
       },
     });
   }

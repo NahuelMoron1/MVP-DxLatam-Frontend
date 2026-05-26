@@ -59,6 +59,9 @@
               <button class="icon-btn" title="Abrir" (click)="open(c.id); $event.stopPropagation()">
                 ↗
               </button>
+              <button class="icon-btn" title="Editar" (click)="openEditModal(c, $event)">
+                ✎
+              </button>
               <button
                 class="icon-btn icon-btn--danger"
                 title="Eliminar"
@@ -143,6 +146,66 @@
           [disabled]="!newCampaign.name.trim()"
         >
           Crear y abrir
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showEditModal()) {
+  <div class="overlay" (click)="closeEditModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h2 class="modal-title">Editar Campaña</h2>
+
+      <div class="form-group">
+        <label class="form-label">Nombre *</label>
+        <input
+          class="form-input"
+          type="text"
+          [(ngModel)]="editForm.name"
+          placeholder="Nombre de la campaña"
+          autofocus
+        />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Descripción</label>
+        <textarea
+          class="form-input form-textarea"
+          [(ngModel)]="editForm.description"
+          placeholder="Descripción opcional"
+          rows="3"
+        ></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Estado</label>
+        <div class="status-toggle">
+          <button
+            class="status-btn"
+            [class.status-btn--active]="editForm.status === 'draft'"
+            (click)="editForm.status = 'draft'"
+          >
+            ● Draft
+          </button>
+          <button
+            class="status-btn status-btn--green"
+            [class.status-btn--active]="editForm.status === 'active'"
+            (click)="editForm.status = 'active'"
+          >
+            ● Active
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-secondary" (click)="closeEditModal()">Cancelar</button>
+        <button
+          class="btn-primary"
+          (click)="update()"
+          [disabled]="!editForm.name?.trim()"
+        >
+          Guardar cambios
         </button>
       </div>
     </div>
