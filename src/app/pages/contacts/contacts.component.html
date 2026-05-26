@@ -12,7 +12,7 @@
       [(ngModel)]="searchQuery"
       (input)="onSearch()"
     />
-    <select class="filter-select" [(ngModel)]="selectedCountry" (change)="onSearch()">
+    <select class="filter-select" [(ngModel)]="selectedCountry" (change)="onFilterChange()">
       <option value="">País ▾</option>
       <option value="AR">Argentina</option>
       <option value="MX">México</option>
@@ -21,7 +21,7 @@
       <option value="PE">Perú</option>
       <option value="BR">Brasil</option>
     </select>
-    <select class="filter-select" [(ngModel)]="selectedStatus" (change)="onSearch()">
+    <select class="filter-select" [(ngModel)]="selectedStatus" (change)="onFilterChange()">
       <option value="">Estado ▾</option>
       <option value="ACTIVE">Active</option>
       <option value="INACTIVE">Inactive</option>

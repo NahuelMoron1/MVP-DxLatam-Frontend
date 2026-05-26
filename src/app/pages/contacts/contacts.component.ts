@@ -38,6 +38,8 @@ export class ContactsComponent implements OnInit {
   selectedStatus: ContactStatus | '' = '';
   selectedCountry = '';
 
+  private searchTimer: ReturnType<typeof setTimeout> | null = null;
+
   showCreateModal = signal(false);
   showEditModal = signal(false);
   editingContact: Contact | null = null;
@@ -70,6 +72,14 @@ export class ContactsComponent implements OnInit {
   }
 
   onSearch(): void {
+    if (this.searchTimer) clearTimeout(this.searchTimer);
+    this.searchTimer = setTimeout(() => {
+      this.page.set(1);
+      this.loadContacts();
+    }, 350);
+  }
+
+  onFilterChange(): void {
     this.page.set(1);
     this.loadContacts();
   }

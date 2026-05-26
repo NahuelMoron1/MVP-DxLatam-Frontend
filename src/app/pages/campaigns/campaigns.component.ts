@@ -40,6 +40,8 @@ export class CampaignsComponent implements OnInit {
   searchQuery = '';
   selectedStatus: CampaignStatus | '' = '';
 
+  private searchTimer: ReturnType<typeof setTimeout> | null = null;
+
   newCampaign: CreateCampaignDto = { name: '', description: '' };
 
   showEditModal = signal(false);
@@ -70,6 +72,14 @@ export class CampaignsComponent implements OnInit {
   }
 
   onSearch(): void {
+    if (this.searchTimer) clearTimeout(this.searchTimer);
+    this.searchTimer = setTimeout(() => {
+      this.page.set(1);
+      this.loadCampaigns();
+    }, 350);
+  }
+
+  onFilterChange(): void {
     this.page.set(1);
     this.loadCampaigns();
   }
