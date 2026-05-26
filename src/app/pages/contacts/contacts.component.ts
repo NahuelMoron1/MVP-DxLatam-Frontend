@@ -2,7 +2,13 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { ContactService } from '../../shared/services/contact.service';
-import { Contact, ContactFilters, ContactStatus } from '../../shared/models/contact.model';
+import {
+  Contact,
+  ContactFilters,
+  ContactStatus,
+  CreateContactDto,
+  UpdateContactDto,
+} from '../../shared/models/contact.model';
 
 @Component({
   selector: 'app-contacts',
@@ -29,6 +35,13 @@ export class ContactsComponent implements OnInit {
   searchQuery = '';
   selectedStatus: ContactStatus | '' = '';
   selectedCountry = '';
+
+  showCreateModal = signal(false);
+  showEditModal = signal(false);
+  editingContact: Contact | null = null;
+
+  newContact: CreateContactDto = this.emptyContact();
+  editForm: UpdateContactDto = {};
 
   ngOnInit(): void {
     this.loadContacts();
@@ -69,11 +82,102 @@ export class ContactsComponent implements OnInit {
     return (contact.first_name[0] + contact.last_name[0]).toUpperCase();
   }
 
+  // ─── Create ────────────────────────────────────────────────────────────────
+
+  openCreateModal(): void {
+    this.newContact = this.emptyContact();
+    this.showCreateModal.set(true);
+  }
+
+  closeCreateModal(): void {
+    this.showCreateModal.set(false);
+  }
+
+  create(): void {
+    if (!this.isValid(this.newContact)) return;
+    this.contactService.createContact(this.newContact).subscribe({
+      next: () => {
+        this.closeCreateModal();
+        this.loadContacts();
+      },
+    });
+  }
+
+  // ─── Edit ──────────────────────────────────────────────────────────────────
+
+  openEditModal(contact: Contact, event: MouseEvent): void {
+    event.stopPropagation();
+    this.editingContact = contact;
+    this.editForm = {
+      first_name: contact.first_name,
+      last_name: contact.last_name,
+      email: contact.email,
+      phone: contact.phone,
+      country: contact.country,
+      city: contact.city,
+      status: contact.status,
+    };
+    this.showEditModal.set(true);
+  }
+
+  closeEditModal(): void {
+    this.showEditModal.set(false);
+    this.editingContact = null;
+  }
+
+  update(): void {
+    if (!this.editingContact || !this.isValid(this.editForm as CreateContactDto)) return;
+    this.contactService.updateContact(this.editingContact.id, this.editForm).subscribe({
+      next: () => {
+        this.closeEditModal();
+        this.loadContacts();
+      },
+    });
+  }
+
+  // ─── Delete ────────────────────────────────────────────────────────────────
+
   delete(id: string, event: MouseEvent): void {
     event.stopPropagation();
     if (!confirm('¿Eliminar este contacto?')) return;
     this.contactService.deleteContact(id).subscribe({
       next: () => this.loadContacts(),
     });
+  }
+
+  // ─── Helpers ───────────────────────────────────────────────────────────────
+
+  private emptyContact(): CreateContactDto {
+    return {
+      first_name: '',
+      last_name: '',
+      email: '',
+      phone: '',
+      country: '',
+      city: '',
+      status: 'ACTIVE',
+    };
+  }
+
+  isValid(c: CreateContactDto): boolean {
+    return !!(
+      c.first_name?.trim() &&
+      c.last_name?.trim() &&
+      c.email?.trim() &&
+      c.phone?.trim() &&
+      c.country?.trim() &&
+      c.city?.trim()
+    );
+  }
+
+  isEditValid(): boolean {
+    return !!(
+      this.editForm.first_name?.trim() &&
+      this.editForm.last_name?.trim() &&
+      this.editForm.email?.trim() &&
+      this.editForm.phone?.trim() &&
+      this.editForm.country?.trim() &&
+      this.editForm.city?.trim()
+    );
   }
 }

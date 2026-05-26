@@ -1,6 +1,7 @@
 <div class="page">
   <header class="page-header">
     <h1 class="page-title">Contactos</h1>
+    <button class="btn-primary" (click)="openCreateModal()">+ NUEVO CONTACTO</button>
   </header>
 
   <div class="filters-bar">
@@ -11,11 +12,7 @@
       [(ngModel)]="searchQuery"
       (input)="onSearch()"
     />
-    <select
-      class="filter-select"
-      [(ngModel)]="selectedCountry"
-      (change)="onSearch()"
-    >
+    <select class="filter-select" [(ngModel)]="selectedCountry" (change)="onSearch()">
       <option value="">País ▾</option>
       <option value="AR">Argentina</option>
       <option value="MX">México</option>
@@ -24,11 +21,7 @@
       <option value="PE">Perú</option>
       <option value="BR">Brasil</option>
     </select>
-    <select
-      class="filter-select"
-      [(ngModel)]="selectedStatus"
-      (change)="onSearch()"
-    >
+    <select class="filter-select" [(ngModel)]="selectedStatus" (change)="onSearch()">
       <option value="">Estado ▾</option>
       <option value="ACTIVE">Active</option>
       <option value="INACTIVE">Inactive</option>
@@ -74,11 +67,10 @@
             </td>
             <td class="muted">{{ c.created_at | date: 'd MMM yyyy' }}</td>
             <td class="actions-cell">
-              <button
-                class="icon-btn icon-btn--danger"
-                title="Eliminar"
-                (click)="delete(c.id, $event)"
-              >
+              <button class="icon-btn" title="Editar" (click)="openEditModal(c, $event)">
+                ✎
+              </button>
+              <button class="icon-btn icon-btn--danger" title="Eliminar" (click)="delete(c.id, $event)">
                 ✕
               </button>
             </td>
@@ -96,30 +88,160 @@
         Mostrando {{ contacts().length }} de {{ total() }} contactos
       </span>
       <div class="pagination-controls">
-        <button
-          class="page-btn"
-          (click)="setPage(page() - 1)"
-          [disabled]="page() === 1"
-        >
-          ‹
-        </button>
+        <button class="page-btn" (click)="setPage(page() - 1)" [disabled]="page() === 1">‹</button>
         @for (p of pages(); track p) {
           <button
             class="page-btn"
             [class.page-btn--active]="p === page()"
             (click)="setPage(p)"
-          >
-            {{ p }}
-          </button>
+          >{{ p }}</button>
         }
-        <button
-          class="page-btn"
-          (click)="setPage(page() + 1)"
-          [disabled]="page() === totalPages()"
-        >
-          ›
-        </button>
+        <button class="page-btn" (click)="setPage(page() + 1)" [disabled]="page() === totalPages()">›</button>
       </div>
     </div>
   }
 </div>
+
+<!-- ── Create modal ──────────────────────────────────────────────────────── -->
+@if (showCreateModal()) {
+  <div class="overlay" (click)="closeCreateModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h2 class="modal-title">Nuevo Contacto</h2>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Nombre *</label>
+          <input class="form-input" type="text" [(ngModel)]="newContact.first_name" placeholder="Juan" autofocus />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Apellido *</label>
+          <input class="form-input" type="text" [(ngModel)]="newContact.last_name" placeholder="Pérez" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Email *</label>
+        <input class="form-input" type="email" [(ngModel)]="newContact.email" placeholder="juan@ejemplo.com" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Teléfono *</label>
+        <input class="form-input" type="text" [(ngModel)]="newContact.phone" placeholder="+54 11 1234-5678" />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">País *</label>
+          <select class="form-input form-select" [(ngModel)]="newContact.country">
+            <option value="">Seleccionar</option>
+            <option value="AR">Argentina</option>
+            <option value="MX">México</option>
+            <option value="CL">Chile</option>
+            <option value="CO">Colombia</option>
+            <option value="PE">Perú</option>
+            <option value="BR">Brasil</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Ciudad *</label>
+          <input class="form-input" type="text" [(ngModel)]="newContact.city" placeholder="Buenos Aires" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Estado</label>
+        <div class="status-toggle">
+          <button
+            class="status-btn status-btn--green"
+            [class.status-btn--active]="newContact.status === 'ACTIVE'"
+            (click)="newContact.status = 'ACTIVE'"
+          >● Active</button>
+          <button
+            class="status-btn"
+            [class.status-btn--active]="newContact.status === 'INACTIVE'"
+            (click)="newContact.status = 'INACTIVE'"
+          >● Inactive</button>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-secondary" (click)="closeCreateModal()">Cancelar</button>
+        <button class="btn-primary" (click)="create()" [disabled]="!isValid(newContact)">
+          Crear contacto
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ── Edit modal ────────────────────────────────────────────────────────── -->
+@if (showEditModal()) {
+  <div class="overlay" (click)="closeEditModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h2 class="modal-title">Editar Contacto</h2>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Nombre *</label>
+          <input class="form-input" type="text" [(ngModel)]="editForm.first_name" placeholder="Juan" autofocus />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Apellido *</label>
+          <input class="form-input" type="text" [(ngModel)]="editForm.last_name" placeholder="Pérez" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Email *</label>
+        <input class="form-input" type="email" [(ngModel)]="editForm.email" placeholder="juan@ejemplo.com" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Teléfono *</label>
+        <input class="form-input" type="text" [(ngModel)]="editForm.phone" placeholder="+54 11 1234-5678" />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">País *</label>
+          <select class="form-input form-select" [(ngModel)]="editForm.country">
+            <option value="">Seleccionar</option>
+            <option value="AR">Argentina</option>
+            <option value="MX">México</option>
+            <option value="CL">Chile</option>
+            <option value="CO">Colombia</option>
+            <option value="PE">Perú</option>
+            <option value="BR">Brasil</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Ciudad *</label>
+          <input class="form-input" type="text" [(ngModel)]="editForm.city" placeholder="Buenos Aires" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Estado</label>
+        <div class="status-toggle">
+          <button
+            class="status-btn status-btn--green"
+            [class.status-btn--active]="editForm.status === 'ACTIVE'"
+            (click)="editForm.status = 'ACTIVE'"
+          >● Active</button>
+          <button
+            class="status-btn"
+            [class.status-btn--active]="editForm.status === 'INACTIVE'"
+            (click)="editForm.status = 'INACTIVE'"
+          >● Inactive</button>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-secondary" (click)="closeEditModal()">Cancelar</button>
+        <button class="btn-primary" (click)="update()" [disabled]="!isEditValid()">
+          Guardar cambios
+        </button>
+      </div>
+    </div>
+  </div>
+}
