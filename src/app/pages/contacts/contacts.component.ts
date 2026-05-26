@@ -113,7 +113,7 @@ export class ContactsComponent implements OnInit {
         this.loadContacts();
         this.toast.show('Contacto creado exitosamente');
       },
-      error: () => this.toast.show('Error al crear el contacto', 'error'),
+      error: (err) => this.toast.showError(err, 'Error al crear el contacto'),
     });
   }
 
@@ -147,7 +147,7 @@ export class ContactsComponent implements OnInit {
         this.loadContacts();
         this.toast.show('Contacto actualizado');
       },
-      error: () => this.toast.show('Error al actualizar el contacto', 'error'),
+      error: (err) => this.toast.showError(err, 'Error al actualizar el contacto'),
     });
   }
 
@@ -161,7 +161,7 @@ export class ContactsComponent implements OnInit {
         this.loadContacts();
         this.toast.show('Contacto eliminado');
       },
-      error: () => this.toast.show('Error al eliminar el contacto', 'error'),
+      error: (err) => this.toast.showError(err, 'Error al eliminar el contacto'),
     });
   }
 

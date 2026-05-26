@@ -19,6 +19,11 @@ export class ToastService {
     setTimeout(() => this.dismiss(id), 3500);
   }
 
+  showError(err: unknown, fallback: string): void {
+    const apiMessage = (err as any)?.error?.error?.message;
+    this.show(apiMessage ?? fallback, 'error');
+  }
+
   dismiss(id: number): void {
     this.toasts.update((ts) => ts.filter((t) => t.id !== id));
   }

@@ -408,9 +408,9 @@ export class CanvasComponent implements OnInit {
           if (!onDone) this.toast.show('Canvas guardado');
           onDone?.();
         },
-        error: () => {
+        error: (err) => {
           this.saving.set(false);
-          this.toast.show('Error al guardar el canvas', 'error');
+          this.toast.showError(err, 'Error al guardar el canvas');
         },
       });
   }

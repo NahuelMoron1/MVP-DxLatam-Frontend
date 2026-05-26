@@ -106,7 +106,7 @@ export class CampaignsComponent implements OnInit {
         this.closeModal();
         this.router.navigate(['/campaigns', campaign.id]);
       },
-      error: () => this.toast.show('Error al crear la campaña', 'error'),
+      error: (err) => this.toast.showError(err, 'Error al crear la campaña'),
     });
   }
 
@@ -134,7 +134,7 @@ export class CampaignsComponent implements OnInit {
         this.loadCampaigns();
         this.toast.show('Campaña actualizada');
       },
-      error: () => this.toast.show('Error al actualizar la campaña', 'error'),
+      error: (err) => this.toast.showError(err, 'Error al actualizar la campaña'),
     });
   }
 
@@ -150,7 +150,7 @@ export class CampaignsComponent implements OnInit {
         this.loadCampaigns();
         this.toast.show('Campaña eliminada');
       },
-      error: () => this.toast.show('Error al eliminar la campaña', 'error'),
+      error: (err) => this.toast.showError(err, 'Error al eliminar la campaña'),
     });
   }
 }
