@@ -118,7 +118,10 @@
                 maxlength="480"
               ></textarea>
               <div class="sms-meta">
-                <span [class.sms-over]="smsChars > 160">{{ smsChars }} / 160</span>
+                <span [class.sms-over]="smsChars > smsLimit">
+                  {{ smsChars }} / {{ smsLimit }}
+                  <span class="sms-encoding">{{ isUnicode ? 'Unicode' : 'GSM' }}</span>
+                </span>
                 @if (smsSegments > 1) {
                   <span class="sms-segments">{{ smsSegments }} SMS</span>
                 }
@@ -214,6 +217,9 @@
                   <button class="node-delete" (click)="deleteNode(node.id, $event)">✕</button>
                 </div>
                 <div class="node-summary">{{ nodeSummary(node) }}</div>
+                @if (node.type === 'segment' && audienceCounts().get(node.id) !== undefined) {
+                  <div class="node-audience">{{ audienceCounts().get(node.id) }} contactos</div>
+                }
               </div>
 
               <!-- Output port -->

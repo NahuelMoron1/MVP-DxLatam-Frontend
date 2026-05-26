@@ -68,6 +68,12 @@ export class CanvasComponent implements OnInit {
       if (node.type === 'sms') {
         const msg = (node.config as { message: string }).message;
         if (!msg?.trim()) ids.add(node.id);
+        const hasSegment = this.edges().some(
+          (e) =>
+            e.target_node_id === node.id &&
+            this.nodes().find((n) => n.id === e.source_node_id)?.type === 'segment',
+        );
+        if (!hasSegment) ids.add(node.id);
       } else if (node.type === 'segment') {
         const conditions = (node.config as FilterGroup).conditions ?? [];
         if (conditions.length === 0) ids.add(node.id);
@@ -84,10 +90,23 @@ export class CanvasComponent implements OnInit {
   editSmsMessage = '';
   audienceCount: number | null = null;
   audienceLoading = false;
+  audienceCounts = signal<Map<string, number>>(new Map());
+
+  private readonly GSM7_REGEX =
+    /^[@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞ\x1bÆæßÉ !"#¤%&'()*+,\-.\/0-9:;<=>?¡A-ZÄÖÑÜ§¿a-zäöñüà|\^€{}\[\]~\\]*$/;
+
+  get isUnicode(): boolean {
+    return !this.GSM7_REGEX.test(this.editSmsMessage);
+  }
+
+  get smsLimit(): number {
+    return this.isUnicode ? 70 : 160;
+  }
 
   readonly FIELDS = [
     { value: 'country', label: 'País' },
     { value: 'status', label: 'Estado' },
+    { value: 'created_at', label: 'Fecha de creación' },
     { value: 'age', label: 'Edad' },
     { value: 'plan', label: 'Plan' },
     { value: 'last_purchase_days', label: 'Días últ. compra' },
@@ -155,7 +174,7 @@ export class CanvasComponent implements OnInit {
     }
     this.connectingFrom = null;
     this.selectedNodeId.set(id);
-    this.audienceCount = null;
+    this.audienceCount = this.audienceCounts().get(id) ?? null;
     const node = this.nodes().find((n) => n.id === id);
     if (!node) return;
     if (node.type === 'segment') {
@@ -249,6 +268,7 @@ export class CanvasComponent implements OnInit {
       this.segmentService.getAudience(id, node.config as FilterGroup).subscribe({
         next: (res) => {
           this.audienceCount = res.count;
+          this.audienceCounts.update((m) => new Map(m).set(id, res.count));
           this.audienceLoading = false;
         },
         error: () => (this.audienceLoading = false),
@@ -263,7 +283,7 @@ export class CanvasComponent implements OnInit {
   }
 
   get smsSegments(): number {
-    return Math.ceil(this.smsChars / 160) || 1;
+    return Math.ceil(this.smsChars / this.smsLimit) || 1;
   }
 
   onSmsChange(): void {
@@ -366,6 +386,12 @@ export class CanvasComponent implements OnInit {
       if (node.type === 'sms') {
         const msg = (node.config as { message: string }).message;
         if (!msg?.trim()) issues.push('hay un nodo SMS sin mensaje');
+        const hasSegment = this.edges().some(
+          (e) =>
+            e.target_node_id === node.id &&
+            this.nodes().find((n) => n.id === e.source_node_id)?.type === 'segment',
+        );
+        if (!hasSegment) issues.push('hay un nodo SMS sin Segmento conectado');
       } else if (node.type === 'segment') {
         const conditions = (node.config as FilterGroup).conditions ?? [];
         if (conditions.length === 0) issues.push('hay un nodo Segmento sin condiciones');
